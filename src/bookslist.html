@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaraBasa Library IS - Books List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>TaraBasa Library IS</h1>
+    </header>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="bookslist.html">Books List</a>
+        <a href="borrowlist.html">Borrow List</a>
+    </nav>
+    <main>
+        <h2>Add a New Book</h2>
+        <form id="add-book-form">
+            <input type="text" id="book-title" placeholder="Book Title" required>
+            <input type="text" id="author" placeholder="Author" required>
+            <input type="text" id="genre" placeholder="Genre" required>
+            <select id="status">
+                <option value="Available">Available</option>
+                <option value="Borrowed">Borrowed</option>
+            </select>
+            <button type="submit">Add Book</button>
+        </form>
+
+        <h2>Books List</h2>
+        <table id="books-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Book Title</th>
+                    <th onclick="sortTable(1)">Author</th>
+                    <th onclick="sortTable(2)">Genre</th>
+                    <th onclick="sortTable(3)">Status</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>The Lord of the Rings</td>
+                    <td>J.R.R. Tolkien</td>
+                    <td>Fantasy</td>
+                    <td>Available</td>
+                </tr>
+                <tr>
+                    <td>The Hitchhiker's Guide to the Galaxy</td>
+                    <td>Douglas Adams</td>
+                    <td>Science Fiction</td>
+                    <td>Borrowed</td>
+                </tr>
+                <tr>
+                    <td>Pride and Prejudice</td>
+                    <td>Jane Austen</td>
+                    <td>Romance</td>
+                    <td>Available</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+            <script>
+            function sortTable(n) {
+                var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                table = document.getElementById("books-table");
+                switching = true;
+                dir = "asc";
+                while (switching) {
+                    switching = false;
+                    rows = table.rows;
+                    for (i = 1; i < (rows.length - 1); i++) {
+                        shouldSwitch = false;
+                        x = rows[i].getElementsByTagName("TD")[n];
+                        y = rows[i + 1].getElementsByTagName("TD")[n];
+                        if (dir == "asc") {
+                            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        } else if (dir == "desc") {
+                            if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (shouldSwitch) {
+                        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                        switching = true;
+                        switchcount++;
+                    } else {
+                        if (switchcount == 0 && dir == "asc") {
+                            dir = "desc";
+                            switching = true;
+                        }
+                    }
+                }
+            }
+    
+            document.addEventListener('DOMContentLoaded', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const searchQuery = urlParams.get('search');
+                if (searchQuery) {
+                    const tableRows = document.querySelectorAll('#books-table tbody tr');
+                    tableRows.forEach(row => {
+                        const bookTitle = row.querySelector('td:first-child').textContent.toLowerCase();
+                        if (bookTitle.includes(searchQuery.toLowerCase())) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                }
+
+                document.getElementById('add-book-form').addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const bookTitle = document.getElementById('book-title').value;
+                    const author = document.getElementById('author').value;
+                    const genre = document.getElementById('genre').value;
+                    const status = document.getElementById('status').value;
+
+                    const tableBody = document.querySelector('#books-table tbody');
+                    const newRow = tableBody.insertRow();
+                    newRow.innerHTML = `
+                        <td>${bookTitle}</td>
+                        <td>${author}</td>
+                        <td>${genre}</td>
+                        <td>${status}</td>
+                    `;
+
+                    document.getElementById('add-book-form').reset();
+                });
+            });
+        </script></body>
+</html>
