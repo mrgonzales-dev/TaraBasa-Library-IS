@@ -5,22 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TaraBasa Library IS - Borrow List</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   </head>
   <body class="bg-gray-50 text-gray-800">
-    <!-- Header -->
-    <header class="bg-blue-700 text-white py-5 shadow-md">
-      <h1 class="text-3xl font-bold text-center">TaraBasa Library IS</h1>
+    <!-- Header Section -->
+    <header
+      class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg"
+    >
+      <div class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold flex items-center">
+          <i class="fas fa-book mr-3"></i>
+          TaraBasa Library IS
+        </h1>
+        <p class="text-blue-100 mt-2">
+          Manage your library collection with ease
+        </p>
+      </div>
     </header>
 
     <!-- Navigation -->
-    <nav class="flex justify-center bg-blue-600 text-white py-3 space-x-6">
-      <a href="../index.html" class="hover:text-yellow-300">Home</a>
-      <a href="bookslist.html" class="hover:text-yellow-300">Books List</a>
-      <a
-        href="borrowlist.html"
-        class="font-semibold border-b-2 border-yellow-300 hover:text-yellow-300"
-        >Borrow List</a
-      >
+    <nav class="bg-white shadow-md">
+      <div class="container mx-auto px-4">
+        <div class="flex space-x-6 py-4">
+          <a
+            href="../index.html"
+            class="text-gray-700 hover:text-blue-600 font-medium flex items-center"
+          >
+            <i class="fas fa-home mr-2"></i> Home
+          </a>
+          <a
+            href="bookslist.html"
+            class="text-gray-700 hover:text-blue-600 font-medium flex items-center"
+          >
+            <i class="fas fa-book-open mr-2"></i> Books List
+          </a>
+          <a
+            href="borrowlist.html"
+ 
+            class="text-blue-600 font-medium flex items-center border-b-2 border-blue-600 pb-1"
+          >
+            <i class="fas fa-clipboard-list mr-2"></i> Borrow List
+          </a>
+        </div>
+      </div>
     </nav>
 
     <!-- Main Content -->
@@ -82,113 +109,105 @@
       </div>
     </div>
 
-    <script>
-      const tableBody = document.querySelector("#borrow-table tbody");
-      const updateBtn = document.getElementById("update-btn");
-      const updateModal = document.getElementById("update-modal");
-
-      // Arrays
-      let fetchedBorrows = [];
-      let pending = [];
-      let approved = [];
-      let declined = [];
-
-      function updateRowColor(row, status) {
-        row.classList.remove("bg-yellow-100", "bg-green-100", "bg-red-100");
-        if (status === "Pending") row.classList.add("bg-yellow-100");
-        else if (status === "Approved") row.classList.add("bg-green-100");
-        else if (status === "Declined") row.classList.add("bg-red-100");
-      }
-
-      function deleteBorrow(button, borrow) {
-        const row = button.closest("tr");
-        row.remove();
-        // Remove from fetchedBorrows
-        const index = fetchedBorrows.findIndex((b) => b.id === borrow.id);
-        if (index > -1) fetchedBorrows.splice(index, 1);
-      }
-
-      function addRow(borrow) {
-        const row = tableBody.insertRow();
-        row.className = "hover:bg-gray-50";
-        row.innerHTML = `
-        <td class="py-3 px-4">${borrow.borrower}</td>
-        <td class="py-3 px-4">${borrow.book}</td>
-        <td class="py-3 px-4">${borrow.date_borrowed}</td>
-        <td class="py-3 px-4">${borrow.due_date}</td>
-        <td class="py-3 px-4">
-          <select class="border border-gray-300 rounded px-2 py-1 status-dropdown">
-            <option value="Pending" ${borrow.status === "Pending" ? "selected" : ""}>Pending</option>
-            <option value="Approved" ${borrow.status === "Approved" ? "selected" : ""}>Approved</option>
-            <option value="Declined" ${borrow.status === "Declined" ? "selected" : ""}>Declined</option>
-          </select>
-        </td>
-        <td class="py-3 px-4">
-          <button class="bg-red-400 text-white px-2 py-1 rounded hover:bg-red-500 delete-btn">Delete</button>
-        </td>
-      `;
-
-        const select = row.querySelector(".status-dropdown");
-        updateRowColor(row, select.value);
-
-        select.addEventListener("change", (e) => {
-          borrow.status = e.target.value; // update in fetchedBorrows
-          updateRowColor(row, e.target.value);
-        });
-
-        row
-          .querySelector(".delete-btn")
-          .addEventListener("click", () =>
-            deleteBorrow(row.querySelector(".delete-btn"), borrow),
-          );
-      }
-
-      // Fetch database.json
-      fetch("database.json")
-        .then((res) => res.json())
-        .then((data) => {
-          // Save to fetchedBorrows
-          fetchedBorrows = data;
-          // Populate table
-          fetchedBorrows.forEach((borrow) => addRow(borrow));
-        })
-        .catch((err) => console.error("Error loading borrows:", err));
-
-      // Modal functions
-      function openModal() {
-        updateModal.classList.remove("hidden");
-      }
-
-      function closeModal() {
-        updateModal.classList.add("hidden");
-      }
-
-      updateBtn.addEventListener("click", openModal);
-
-      function saveDatabase() {
-        // Clear arrays
-        pending = [];
-        approved = [];
-        declined = [];
-
-        // Categorize by status using array functions
-        fetchedBorrows.forEach((b) => {
-          if (b.status === "Pending") pending.push(b);
-          else if (b.status === "Approved") approved.push(b);
-          else if (b.status === "Declined") declined.push(b);
-        });
-
-        console.log("Pending:", pending);
-        console.log("Approved:", approved);
-        console.log("Declined:", declined);
-        console.log("Updated fetchedBorrows:", fetchedBorrows);
-
-        // Here you would send fetchedBorrows to backend to overwrite database.json
-        // For now, just close modal
-        closeModal();
-        alert("Database updated (simulated). Check console for arrays).");
-      }
-    </script>
   </body>
-</html>
+  <script>
+  const tableBody = document.querySelector("#borrow-table tbody");
+  const updateBtn = document.getElementById("update-btn");
+  const updateModal = document.getElementById("update-modal");
 
+  // For demo: create a sample borrow list using books array
+  let fetchedBorrows = window.books.map((book, index) => ({
+    id: index + 1,
+    borrower: `Borrower ${index + 1}`,
+    book: book.title,
+    date_borrowed: "2025-10-01",
+    due_date: "2025-10-15",
+    status: index % 2 === 0 ? "Pending" : "Approved",
+  }));
+  
+  console.log(fetchedBorrows);
+
+  let pending = [];
+  let approved = [];
+  let declined = [];
+
+  function updateRowColor(row, status) {
+    row.classList.remove("bg-yellow-100", "bg-green-100", "bg-red-100");
+    if (status === "Pending") row.classList.add("bg-yellow-100");
+    else if (status === "Approved") row.classList.add("bg-green-100");
+    else if (status === "Declined") row.classList.add("bg-red-100");
+  }
+
+  function deleteBorrow(button, borrow) {
+    const row = button.closest("tr");
+    row.remove();
+    const index = fetchedBorrows.findIndex((b) => b.id === borrow.id);
+    if (index > -1) fetchedBorrows.splice(index, 1);
+  }
+
+  function addRow(borrow) {
+    const row = tableBody.insertRow();
+    row.className = "hover:bg-gray-50";
+    row.innerHTML = `
+      <td class="py-3 px-4">${borrow.borrower}</td>
+      <td class="py-3 px-4">${borrow.book}</td>
+      <td class="py-3 px-4">${borrow.date_borrowed}</td>
+      <td class="py-3 px-4">${borrow.due_date}</td>
+      <td class="py-3 px-4">
+        <select class="border border-gray-300 rounded px-2 py-1 status-dropdown">
+          <option value="Pending" ${borrow.status === "Pending" ? "selected" : ""}>Pending</option>
+          <option value="Approved" ${borrow.status === "Approved" ? "selected" : ""}>Approved</option>
+          <option value="Declined" ${borrow.status === "Declined" ? "selected" : ""}>Declined</option>
+        </select>
+      </td>
+      <td class="py-3 px-4">
+        <button class="bg-red-400 text-white px-2 py-1 rounded hover:bg-red-500 delete-btn">Delete</button>
+      </td>
+    `;
+
+    const select = row.querySelector(".status-dropdown");
+    updateRowColor(row, select.value);
+
+    select.addEventListener("change", (e) => {
+      borrow.status = e.target.value;
+      updateRowColor(row, e.target.value);
+    });
+
+    row.querySelector(".delete-btn").addEventListener("click", () => deleteBorrow(row.querySelector(".delete-btn"), borrow));
+  }
+
+  // Populate table from global books array
+  fetchedBorrows.forEach((borrow) => addRow(borrow));
+
+  function openModal() {
+    updateModal.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    updateModal.classList.add("hidden");
+  }
+
+  updateBtn.addEventListener("click", openModal);
+
+  function saveDatabase() {
+    pending = [];
+    approved = [];
+    declined = [];
+
+    fetchedBorrows.forEach((b) => {
+      if (b.status === "Pending") pending.push(b);
+      else if (b.status === "Approved") approved.push(b);
+      else if (b.status === "Declined") declined.push(b);
+    });
+
+    console.log("Pending:", pending);
+    console.log("Approved:", approved);
+    console.log("Declined:", declined);
+    console.log("Updated fetchedBorrows:", fetchedBorrows);
+
+    closeModal();
+    alert("Database updated (demo, resets on refresh). Check console.");
+  }
+</script>
+
+</html>

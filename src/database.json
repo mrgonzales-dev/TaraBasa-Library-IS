@@ -2,7 +2,7 @@
   {
     "id": 1,
     "borrower": "John Doe",
-		"book": "The Hitchhiker's Guide to the Galaxy",
+    "book": "The Hitchhiker's Guide to the Galaxy",
     "date_borrowed": "2025-10-01",
     "due_date": "2025-10-15",
     "status": "Pending"
