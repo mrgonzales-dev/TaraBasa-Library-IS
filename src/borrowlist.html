@@ -1,78 +1,194 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TaraBasa Library IS - Borrow List</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <header>
-        <h1>TaraBasa Library IS</h1>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="bg-blue-700 text-white py-5 shadow-md">
+      <h1 class="text-3xl font-bold text-center">TaraBasa Library IS</h1>
     </header>
-    <nav>
-        <a href="../index.html">Home</a>
-        <a href="bookslist.html">Books List</a>
-        <a href="borrowlist.html">Borrow List</a>
+
+    <!-- Navigation -->
+    <nav class="flex justify-center bg-blue-600 text-white py-3 space-x-6">
+      <a href="../index.html" class="hover:text-yellow-300">Home</a>
+      <a href="bookslist.html" class="hover:text-yellow-300">Books List</a>
+      <a
+        href="borrowlist.html"
+        class="font-semibold border-b-2 border-yellow-300 hover:text-yellow-300"
+        >Borrow List</a
+      >
     </nav>
-    <main>
-        <h2>Borrow List</h2>
-        <table id="borrow-table">
-            <thead>
-                <tr>
-                    <th onclick="sortTable(0)">Borrower Name</th>
-                    <th onclick="sortTable(1)">Book Title</th>
-                    <th onclick="sortTable(2)">Date Borrowed</th>
-                    <th onclick="sortTable(3)">Due Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>John Doe</td>
-                    <td>The Hitchhiker's Guide to the Galaxy</td>
-                    <td>2025-10-01</td>
-                    <td>2025-10-15</td>
-                </tr>
-            </tbody>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto mt-10 p-6 bg-white rounded-lg shadow">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold text-gray-700">Borrow List</h2>
+        <button
+          id="update-btn"
+          class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Update Database
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table
+          id="borrow-table"
+          class="min-w-full border border-gray-300 text-sm"
+        >
+          <thead class="bg-blue-100 text-gray-700">
+            <tr>
+              <th class="py-3 px-4">Borrower Name</th>
+              <th class="py-3 px-4">Book Title</th>
+              <th class="py-3 px-4">Date Borrowed</th>
+              <th class="py-3 px-4">Due Date</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200"></tbody>
         </table>
+      </div>
     </main>
+
+    <!-- Modal -->
+    <div
+      id="update-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden"
+    >
+      <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+        <h3 class="text-xl font-semibold mb-4">Update Database</h3>
+        <p class="mb-4">
+          Do you want to update the database with the new data?
+        </p>
+        <div class="flex justify-end space-x-2">
+          <button
+            onclick="closeModal()"
+            class="px-4 py-2 rounded bg-gray-400 hover:bg-gray-500 text-white"
+          >
+            Cancel
+          </button>
+          <button
+            onclick="saveDatabase()"
+            class="px-4 py-2 rounded bg-green-500 hover:bg-green-600 text-white"
+          >
+            Yes, Update
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script>
-        function sortTable(n) {
-            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-            table = document.getElementById("borrow-table");
-            switching = true;
-            dir = "asc";
-            while (switching) {
-                switching = false;
-                rows = table.rows;
-                for (i = 1; i < (rows.length - 1); i++) {
-                    shouldSwitch = false;
-                    x = rows[i].getElementsByTagName("TD")[n];
-                    y = rows[i + 1].getElementsByTagName("TD")[n];
-                    if (dir == "asc") {
-                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    } else if (dir == "desc") {
-                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    }
-                }
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount++;
-                } else {
-                    if (switchcount == 0 && dir == "asc") {
-                        dir = "desc";
-                        switching = true;
-                    }
-                }
-            }
-        }
+      const tableBody = document.querySelector("#borrow-table tbody");
+      const updateBtn = document.getElementById("update-btn");
+      const updateModal = document.getElementById("update-modal");
+
+      // Arrays
+      let fetchedBorrows = [];
+      let pending = [];
+      let approved = [];
+      let declined = [];
+
+      function updateRowColor(row, status) {
+        row.classList.remove("bg-yellow-100", "bg-green-100", "bg-red-100");
+        if (status === "Pending") row.classList.add("bg-yellow-100");
+        else if (status === "Approved") row.classList.add("bg-green-100");
+        else if (status === "Declined") row.classList.add("bg-red-100");
+      }
+
+      function deleteBorrow(button, borrow) {
+        const row = button.closest("tr");
+        row.remove();
+        // Remove from fetchedBorrows
+        const index = fetchedBorrows.findIndex((b) => b.id === borrow.id);
+        if (index > -1) fetchedBorrows.splice(index, 1);
+      }
+
+      function addRow(borrow) {
+        const row = tableBody.insertRow();
+        row.className = "hover:bg-gray-50";
+        row.innerHTML = `
+        <td class="py-3 px-4">${borrow.borrower}</td>
+        <td class="py-3 px-4">${borrow.book}</td>
+        <td class="py-3 px-4">${borrow.date_borrowed}</td>
+        <td class="py-3 px-4">${borrow.due_date}</td>
+        <td class="py-3 px-4">
+          <select class="border border-gray-300 rounded px-2 py-1 status-dropdown">
+            <option value="Pending" ${borrow.status === "Pending" ? "selected" : ""}>Pending</option>
+            <option value="Approved" ${borrow.status === "Approved" ? "selected" : ""}>Approved</option>
+            <option value="Declined" ${borrow.status === "Declined" ? "selected" : ""}>Declined</option>
+          </select>
+        </td>
+        <td class="py-3 px-4">
+          <button class="bg-red-400 text-white px-2 py-1 rounded hover:bg-red-500 delete-btn">Delete</button>
+        </td>
+      `;
+
+        const select = row.querySelector(".status-dropdown");
+        updateRowColor(row, select.value);
+
+        select.addEventListener("change", (e) => {
+          borrow.status = e.target.value; // update in fetchedBorrows
+          updateRowColor(row, e.target.value);
+        });
+
+        row
+          .querySelector(".delete-btn")
+          .addEventListener("click", () =>
+            deleteBorrow(row.querySelector(".delete-btn"), borrow),
+          );
+      }
+
+      // Fetch database.json
+      fetch("database.json")
+        .then((res) => res.json())
+        .then((data) => {
+          // Save to fetchedBorrows
+          fetchedBorrows = data;
+          // Populate table
+          fetchedBorrows.forEach((borrow) => addRow(borrow));
+        })
+        .catch((err) => console.error("Error loading borrows:", err));
+
+      // Modal functions
+      function openModal() {
+        updateModal.classList.remove("hidden");
+      }
+
+      function closeModal() {
+        updateModal.classList.add("hidden");
+      }
+
+      updateBtn.addEventListener("click", openModal);
+
+      function saveDatabase() {
+        // Clear arrays
+        pending = [];
+        approved = [];
+        declined = [];
+
+        // Categorize by status using array functions
+        fetchedBorrows.forEach((b) => {
+          if (b.status === "Pending") pending.push(b);
+          else if (b.status === "Approved") approved.push(b);
+          else if (b.status === "Declined") declined.push(b);
+        });
+
+        console.log("Pending:", pending);
+        console.log("Approved:", approved);
+        console.log("Declined:", declined);
+        console.log("Updated fetchedBorrows:", fetchedBorrows);
+
+        // Here you would send fetchedBorrows to backend to overwrite database.json
+        // For now, just close modal
+        closeModal();
+        alert("Database updated (simulated). Check console for arrays).");
+      }
     </script>
-</body>
+  </body>
 </html>
+
